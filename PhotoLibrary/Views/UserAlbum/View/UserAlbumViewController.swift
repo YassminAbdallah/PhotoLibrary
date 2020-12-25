@@ -11,8 +11,14 @@ import RxCocoa
 
 class UserAlbumViewController: UIViewController {
     
-    @IBOutlet weak var searchBar: UISearchBar!
-    
+    var isSearch = false
+    @IBOutlet weak var searchBar: UISearchBar!{
+        didSet{
+            searchBar.placeholder = "Search by photo title"
+            searchBar.delegate = self
+        }
+    }
+    //
     @IBOutlet weak var collectionView: UICollectionView!{
         didSet {
             collectionView.delegate = self
@@ -68,12 +74,12 @@ class UserAlbumViewController: UIViewController {
 
 extension UserAlbumViewController : UICollectionViewDataSource , UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return userModel.photosData?.count ?? 0
+        return userModel.photoData()?.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "UserAlbumCollectionViewCell", for: indexPath) as! UserAlbumCollectionViewCell
-        cell.imageView.setImage(urlString: userModel.photosData?[indexPath.row].thumbnailUrl ?? "")
+        cell.imageView.setImage(urlString: userModel.photoData()?[indexPath.row].thumbnailUrl ?? "")
         return cell
     }
     
@@ -94,4 +100,51 @@ extension UserAlbumViewController : UICollectionViewDelegateFlowLayout
         return 0
     }
     
+}
+
+
+extension UserAlbumViewController : UISearchBarDelegate
+{
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+       search(searchBar)
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+         cancelSearch(searchBar)
+    }
+
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        self.searchBar.resignFirstResponder()
+        self.searchBar.showsCancelButton = true
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        search(searchBar)
+    }
+    
+    func search(_ searchBar: UISearchBar)
+    {
+        self.isSearch = true
+        self.searchBar.resignFirstResponder()
+        self.searchBar.showsCancelButton = true
+        if searchBar.text != nil || !(searchBar.text?.isEmpty)! {
+            userModel.isSearching = true
+            userModel.searchPhotos(title: searchBar.text ?? "")
+            collectionView.reloadData()
+        }
+        else
+        {
+            cancelSearch(searchBar)
+        }
+    }
+    
+    func cancelSearch(_ searchBar: UISearchBar)
+    {
+        searchBar.resignFirstResponder()
+        searchBar.showsCancelButton = false
+        userModel.isSearching = false
+        searchBar.text = ""
+        collectionView.reloadData()
+    }
 }
