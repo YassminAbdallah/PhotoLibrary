@@ -1,0 +1,21 @@
+//
+//  Extension_Kingfisher.swift
+//  PhotoLibrary
+//
+//  Created by Yassmin Abdallah on 12/25/20.
+//
+
+import Foundation
+import Kingfisher
+
+extension UIImageView {
+    func setImage(urlString: String){
+        guard let url = URL.init(string: urlString) else {
+            return
+        }
+        let resource = ImageResource(downloadURL: url, cacheKey: urlString)
+        var kf = self.kf
+        kf.indicatorType = .activity
+        self.kf.setImage(with: resource)
+    }
+}
